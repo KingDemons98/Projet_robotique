@@ -27,7 +27,7 @@ static THD_FUNCTION(PiRegulator, arg) {
         /*
 		*	To complete
 		*/
-        speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
+//        speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
 
         speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
         if(abs(speed_correction)< ROTATION_THRESHOLD)
@@ -36,8 +36,8 @@ static THD_FUNCTION(PiRegulator, arg) {
         }
 
         //applies the speed from the PI regulator
-		 right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
-		 left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
+//		 right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
+//		 left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
 
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));

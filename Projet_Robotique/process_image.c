@@ -2,6 +2,12 @@
 #include "hal.h"
 #include <chprintf.h>
 #include <usbcfg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <stdbool.h>
+
 
 #include <main.h>
 #include <camera/po8030.h>
@@ -48,7 +54,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 	uint8_t *img_buff_ptr;
 	uint8_t image[IMAGE_BUFFER_SIZE] = {0};
-	uint16_t lineWidth = 0;
+	uint16_t block = 0;
 
 
     while(1){
@@ -71,9 +77,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 		send_to_computer = !send_to_computer;
 
-		lineWidth = extract_line_width(image);
+		block = block_detection(image);
 
-		distance_cm = PXTOCM/lineWidth;
+//		distance_cm = PXTOCM/lineWidth;
 
 
 
@@ -81,7 +87,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 }
 
 float get_distance_cm(void){
-	return distance_cm;
+//	return distance_cm;
 }
 uint16_t get_line_position(void)
 {
@@ -93,13 +99,12 @@ void process_image_start(void){
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
 
-uint16_t extract_line_width(uint8_t *buffer)
+uint16_t block_detection(uint8_t *buffer)
 {
 	uint16_t i = 0, begin = 0, end = 0, width = 0;
 	uint8_t stop = 0, wrong_line = 0, line_not_found = 0;
 	uint32_t mean = 0;
-
-	static uint16_t last_width = PXTOCM/GOAL_DISTANCE;
+	bool left = 0;
 
 	for(uint32_t i = 0 ; i < IMAGE_BUFFER_SIZE ; i++)
 	{
@@ -107,62 +112,20 @@ uint16_t extract_line_width(uint8_t *buffer)
 	}
 	mean /= IMAGE_BUFFER_SIZE;
 
-	do{
-		wrong_line = 0;
-		while(stop == 0 && i < (IMAGE_BUFFER_SIZE - WIDTH_SLOPE))
+	do
+	{
+		while(stop == 0 && i< (IMAGE_BUFFER_SIZE))
 		{
 			if(buffer[i] > mean && buffer[i+WIDTH_SLOPE] < mean)
 			{
 				begin = i;
 				stop = 1;
-			}
-			i++;
-		}
-		if (i < (IMAGE_BUFFER_SIZE - WIDTH_SLOPE) && begin)
-		{
-			stop = 0;
-
-			while(stop == 0 && i < IMAGE_BUFFER_SIZE)
+			}else if(buffer[i] > mean && buffer[i-WIDTH_SLOPE] < mean)
 			{
-				if(buffer[i] > mean && buffer[i-WIDTH_SLOPE] < mean)
-				{
-					end = i;
-					stop = 1;
-				}
-				i++;
+				begin = i;
+				stop = 1;
+				left = 1;
 			}
-			if (i > IMAGE_BUFFER_SIZE || !end)
-			{
-				line_not_found = 1;
-			}
-		}else
-		{
-			line_not_found = 1;
-		}
-		if(!line_not_found && (end-begin) < MIN_LINE_WIDTH)
-		{
-			i = end;
-			begin = 0;
-			end = 0;
-			stop = 0;
-			wrong_line = 1;
 		}
 	} while(wrong_line);
-	if(line_not_found)
-	{
-		begin = 0;
-		end = 0;
-		width = last_width;
-	}else
-	{
-		last_width = width = (end - begin);
-		line_position = (begin + end)/2;
-	}
-	if((PXTOCM/width) > MAX_DISTANCE)
-	{
-		return PXTOCM/MAX_DISTANCE;
-	} else
-	{
-		return width;
-	}
 }
