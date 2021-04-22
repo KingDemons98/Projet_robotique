@@ -78,6 +78,12 @@ static THD_FUNCTION(ProcessImage, arg) {
 		send_to_computer = !send_to_computer;
 
 		Block = block_detection(image);
+//		palClearPad(GPIOD, GPIOD_LED5);
+
+//		if(Block == LEFT)
+//		{
+//			palClearPad(GPIOD, GPIOD_LED5);
+//		}
 
 
     }
@@ -98,11 +104,12 @@ void process_image_start(void){
 
 uint block_detection(uint8_t *buffer)
 {
-	uint16_t i = 0, begin = 0, end = 0;
+	uint16_t i = 0, begin = 0, end = 0, width = 0;
 	uint8_t stop = 0, wrong_line = 0, line_not_found = 0;
 	uint32_t mean = 0;
 	bool left = 0;
 	uint block = 0;
+	static uint16_t last_width = PXTOCM/GOAL_DISTANCE;
 
 	for(uint32_t i = 0 ; i < IMAGE_BUFFER_SIZE ; i++)
 	{
@@ -168,6 +175,11 @@ uint block_detection(uint8_t *buffer)
 		begin = 0;
 		end = 0;
 		block = 0;
+		width = last_width;
+	} else
+	{
+		last_width = width =(end - begin);
+		line_position = (begin + end)/2;
 	}
 	return block;
 }
