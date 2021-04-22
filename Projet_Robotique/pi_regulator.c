@@ -18,7 +18,7 @@ static THD_FUNCTION(PiRegulator, arg) {
 
     systime_t time;
     int16_t speed =0;
-    int16_t speed_correction = 0;
+
 
 
     while(1){
@@ -27,13 +27,8 @@ static THD_FUNCTION(PiRegulator, arg) {
         /*
 		*	To complete
 		*/
-//        speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
 
-        speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
-        if(abs(speed_correction)< ROTATION_THRESHOLD)
-        {
-        	speed_correction = 0;
-        }
+
 
         //applies the speed from the PI regulator
 //		 right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
