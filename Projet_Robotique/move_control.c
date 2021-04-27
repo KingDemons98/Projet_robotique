@@ -1,0 +1,25 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+
+
+#include <move_control.h>
+#include <proximity.h>
+#include <motors.h>
+#include <pi_regulator.h>
+#include <process_image.h>
+#include <camera/po8030.h>
+
+
+// module de gestion du déplacement avec la caméra et les capteurs de proximité
+
+static THD_WORKING_AREA(waMoveControl, 256);
+static THD_FUNCTION(MoveControl, arg)
+{
+	chRegSetThreadName(__FUNCTION__);
+	(void)arg;
+
+
+}
