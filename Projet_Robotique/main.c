@@ -16,6 +16,7 @@
 
 #include <pi_regulator.h>
 #include <process_image.h>
+#include <move_control.h>
 
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
@@ -63,6 +64,7 @@ int main(void)
 	//stars the threads for the pi regulator and the processing of the image
 	pi_regulator_start();
 	process_image_start();
+	move_control_start();
 
     /* Infinite loop. */
     while (1) {
