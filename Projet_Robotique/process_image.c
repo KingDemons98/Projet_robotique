@@ -77,9 +77,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 		send_to_computer = !send_to_computer;
 
-		Block = block_detection(image);
-//		palClearPad(GPIOD, GPIOD_LED5);
-
+//		Block = block_detection(image);
+//		palSetPad(GPIOD, GPIOD_LED5);
+//
 //		if(Block == LEFT)
 //		{
 //			palClearPad(GPIOD, GPIOD_LED5);
