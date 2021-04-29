@@ -28,7 +28,7 @@
 		<link>
 			<name>e-puck2_main-processor</name>
 			<type>2</type>
-			<locationURI>copy_PARENT/lib/e-puck2_main-processor</locationURI>
+			<location>/home/louis/Documents/EPFL/3eme/robotique/Projet/lib</location>
 		</link>
 	</linkedResources>
 	<variableList>
