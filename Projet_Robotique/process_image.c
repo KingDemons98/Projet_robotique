@@ -74,18 +74,18 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 		if (send_to_computer) {
 			SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
+			//SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
 		}
 		send_to_computer = !send_to_computer;
 
 		Block = block_detection(image);
 //		palClearPad(GPIOD, GPIOD_LED5);
+		palSetPad(GPIOD, GPIOD_LED5);
 
-//		if(Block == LEFT)
-//		{
-//			palClearPad(GPIOD, GPIOD_LED5);
-//		}
-
-
+		if(Block == LEFT)
+		{
+			palClearPad(GPIOD, GPIOD_LED5);
+		}
     }
 }
 
@@ -110,6 +110,9 @@ uint block_detection(uint8_t *buffer)
 	bool left = 0;
 	uint block = 0;
 	static uint16_t last_width = PXTOCM/GOAL_DISTANCE;
+//	palClearPad(GPIOD, GPIOD_LED1);
+//	palClearPad(GPIOD, GPIOD_LED3);
+//	palClearPad(GPIOD, GPIOD_LED5);
 
 	for(uint32_t i = 0 ; i < IMAGE_BUFFER_SIZE ; i++)
 	{
@@ -119,8 +122,11 @@ uint block_detection(uint8_t *buffer)
 
 	do
 	{
+		wrong_line = 0;
+//		palSetPad(GPIOD, GPIOD_LED5); //test boucle dowhile
 		while(stop == 0 && i< (IMAGE_BUFFER_SIZE))
 		{
+//			palSetPad(GPIOD, GPIOD_LED1); //test boucle1
 			if(buffer[i] > mean && buffer[i+WIDTH_SLOPE] < mean)
 			{
 				begin = i;
@@ -134,12 +140,14 @@ uint block_detection(uint8_t *buffer)
 			}
 			i++;
 		}
+//		palClearPad(GPIOD, GPIOD_LED1); //fin test 1
 		if (i < (IMAGE_BUFFER_SIZE - WIDTH_SLOPE) && begin)
 		{
 			stop = 0;
 
 			while(stop == 0 && i < IMAGE_BUFFER_SIZE)
 			{
+//				palSetPad(GPIOD, GPIOD_LED3); //test boucle 2
 				if(buffer[i] > mean && buffer[i-WIDTH_SLOPE] < mean && !left)
 				{
 					end = i;
@@ -153,6 +161,7 @@ uint block_detection(uint8_t *buffer)
 				}
 				i++;
 			}
+//			palClearPad(GPIOD, GPIOD_LED3); //fin test 2
 			if (i > IMAGE_BUFFER_SIZE || !end)
 			{
 				line_not_found = 1;
@@ -170,6 +179,7 @@ uint block_detection(uint8_t *buffer)
 			wrong_line = 1;
 		}
 	} while(wrong_line);
+//	palClearPad(GPIOD, GPIOD_LED5); //fin test dowhile
 	if(line_not_found)
 	{
 		begin = 0;
