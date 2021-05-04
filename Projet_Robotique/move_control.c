@@ -1,8 +1,12 @@
+#include "ch.h"
+#include "hal.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
+#include <chprintf.h>
+#include <usbcfg.h>
+#include <stdbool.h>
 
 
 #include <move_control.h>
@@ -39,8 +43,14 @@ void test_capteur(void)
 	calibrate_ir();
 	left = get_prox(6);
 	right= get_prox(3);
-
-	chprintf((BaseSequentialStream *)&SDU1, "valeur capteur6= %i \n", left;
+	if(left!=0)
+	{
+		palClearPad(GPIOD, GPIOD_LED7);
+	}else
+	{
+		palSetPad(GPIOD, GPIOD_LED7);
+	}
+	chprintf((BaseSequentialStream *)&SDU1, "valeur capteur6= %d \n", left);
 
 }
-}
+
