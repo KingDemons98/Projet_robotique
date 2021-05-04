@@ -28,7 +28,7 @@
 		<link>
 			<name>e-puck2_main-processor</name>
 			<type>2</type>
-			<location>/home/louis/Documents/EPFL/3eme/robotique/Projet/lib</location>
+			<location>/home/louis/Documents/EPFL/3eme/robotique/lib/e-puck2_main-processor</location>
 		</link>
 	</linkedResources>
 	<variableList>

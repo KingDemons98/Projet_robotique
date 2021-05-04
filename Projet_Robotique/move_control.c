@@ -13,9 +13,9 @@
 #include <camera/po8030.h>
 
 
-// module de gestion du déplacement avec la caméra et les capteurs de proximité
+// module de gestion du dï¿½placement avec la camï¿½ra et les capteurs de proximitï¿½
 
-static BSEMAPHORE_DECL(block_passed, TRUE);				//permet de signaler quand le bloc est dépassé
+static BSEMAPHORE_DECL(block_passed, TRUE);				//permet de signaler quand le bloc est dï¿½passï¿½
 static BSEMAPHORE_DECL(position_reached, TRUE);			//signale quand le robot est a la bonne distance du prochain bloc
 
 static THD_WORKING_AREA(waMoveControl, 256);
@@ -24,9 +24,23 @@ static THD_FUNCTION(MoveControl, arg)
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 	systime_t time;
+	test_capteur();
 }
 
 void move_control_start(void)
 {
 	chThdCreateStatic(waMoveControl, sizeof(waMoveControl), NORMALPRIO, MoveControl, NULL);
+}
+
+void test_capteur(void)
+{
+	int left;
+	int right;
+	calibrate_ir();
+	left = get_prox(6);
+	right= get_prox(3);
+
+	chprintf((BaseSequentialStream *)&SDU1, "valeur capteur6= %i \n", left;
+
+}
 }
