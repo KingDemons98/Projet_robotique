@@ -16,7 +16,9 @@
 
 
 static uint Block = 0;
+static uint16_t width = 0;
 static uint16_t line_position = IMAGE_BUFFER_SIZE/2;
+static float distance_cm = 0;
 
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
@@ -73,12 +75,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 			image[i/2] = (uint8_t)img_buff_ptr[i]&0x1F8;
 		}
 		if (send_to_computer) {
-			//SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
+			SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
 		}
 		send_to_computer = !send_to_computer;
 
 		Block = block_detection(image);
 		palSetPad(GPIOD, GPIOD_LED5);
+		distance_cm = PXTOCM/width;
 
 		if(Block == LEFT)
 		{
@@ -97,6 +100,11 @@ uint16_t get_line_position(void)
 	return line_position;
 }
 
+uint16_t get_distance_cm(void)
+{
+	return distance_cm;
+}
+
 void process_image_start(void){
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
@@ -104,10 +112,10 @@ void process_image_start(void){
 
 uint block_detection(uint8_t *buffer)
 {
-	uint16_t i = 0, begin = 0, end = 0, width = 0;
+	uint16_t i = 0, begin = 0, end = 0;
 	uint8_t stop = 0, wrong_line = 0, line_not_found = 0;
 	uint32_t mean = 0;
-	bool left = 0;
+//	bool left = 0;
 	uint block = 0;
 	static uint16_t last_width = PXTOCM/GOAL_DISTANCE;
 //	palClearPad(GPIOD, GPIOD_LED1);
@@ -123,20 +131,15 @@ uint block_detection(uint8_t *buffer)
 	do
 	{
 		wrong_line = 0;
-//		palSetPad(GPIOD, GPIOD_LED5); //test boucle dowhile
+		palSetPad(GPIOD, GPIOD_LED5); //test boucle dowhile
 		while(stop == 0 && i< (IMAGE_BUFFER_SIZE))
 		{
 //			palSetPad(GPIOD, GPIOD_LED1); //test boucle1
-			if(buffer[i] > mean && buffer[i+WIDTH_SLOPE] < mean)
+			if(buffer[i] > mean && buffer[i-WIDTH_SLOPE] < mean)
 			{
 				begin = i;
 				stop = 1;
-				left = 0;
-			}else if(buffer[i] > mean && buffer[i-WIDTH_SLOPE] < mean)
-			{
-				begin = i;
-				stop = 1;
-				left = 1;
+//				left = 0;
 			}
 			i++;
 		}
@@ -148,18 +151,23 @@ uint block_detection(uint8_t *buffer)
 			while(stop == 0 && i < IMAGE_BUFFER_SIZE)
 			{
 //				palSetPad(GPIOD, GPIOD_LED3); //test boucle 2
-				if(buffer[i] > mean && buffer[i-WIDTH_SLOPE] < mean && !left)
+				if(buffer[i] > mean && buffer[i+WIDTH_SLOPE] < mean)
 				{
 					end = i;
-					stop = 1;
+//					stop = 1;
 					block = RIGHT;
-				}else if(buffer[i] > mean && buffer[i+WIDTH_SLOPE] < mean && left)
-				{
-					end = i;
-					stop = 1;
-					block = LEFT;
 				}
 				i++;
+				if(i<(IMAGE_BUFFER_SIZE - WIDTH_SLOPE) && end)
+				{
+					if(buffer[i] > mean && buffer[i-WIDTH_SLOPE] < mean)
+					{
+						begin = end;
+						end = i;
+						stop =1;
+						block = LEFT;
+					}
+				}
 			}
 //			palClearPad(GPIOD, GPIOD_LED3); //fin test 2
 			if (i > IMAGE_BUFFER_SIZE || !end)
@@ -170,7 +178,7 @@ uint block_detection(uint8_t *buffer)
 		{
 			line_not_found = 1;
 		}
-		if(!line_not_found && (end-begin) < MIN_LINE_WIDTH)
+		if(!line_not_found &&  (((end-begin) < MIN_LINE_WIDTH) || ((end-begin) > MAX_LINE_WIDTH)))
 		{
 			i = end;
 			begin = 0;

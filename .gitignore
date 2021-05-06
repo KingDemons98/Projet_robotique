@@ -3,7 +3,7 @@ build
 *.projet
 # Prerequisites
 *.d
-lib
+lib/
 # Object files
 *.o
 *.ko

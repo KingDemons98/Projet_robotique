@@ -8,7 +8,7 @@
 #include <usbcfg.h>
 #include <stdbool.h>
 
-
+#include <main.h>
 #include <move_control.h>
 #include <sensors/proximity.h>
 #include <motors.h>
@@ -22,6 +22,9 @@
 static BSEMAPHORE_DECL(block_passed, TRUE);				//permet de signaler quand le bloc est d�pass�
 static BSEMAPHORE_DECL(position_reached, TRUE);			//signale quand le robot est a la bonne distance du prochain bloc
 
+int16_t speed =0;
+int16_t speed_correction = 0;
+
 static THD_WORKING_AREA(waMoveControl, 1024);
 static THD_FUNCTION(MoveControl, arg)
 {
@@ -29,11 +32,23 @@ static THD_FUNCTION(MoveControl, arg)
 	(void)arg;
 	systime_t time;
 	while(1)
-		{
-		test_capteur();
-		chThdSleepMilliseconds(100);
-		}
+	{
+		time = chVTGetSystemTime();
+		speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
 
+		speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
+		if(abs(speed_correction)< ROTATION_THRESHOLD)
+		{
+			speed_correction = 0;
+		}
+		right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
+		left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
+
+		chThdSleepUntilWindowed(time, time + MS2ST(1));
+
+//		test_capteur();
+//		chThdSleepMilliseconds(100);
+	}
 }
 
 void move_control_start(void)
@@ -55,7 +70,7 @@ void test_capteur(void)
 	{
 		palSetPad(GPIOD, GPIOD_LED7);
 	}
-	chprintf((BaseSequentialStream *)&SDU1, "valeur capteur6= %d \n", left);
+//	chprintf((BaseSequentialStream *)&SDU1, "valeur capteur6= %d \n", left);
 
 }
 
