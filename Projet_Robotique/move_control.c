@@ -22,13 +22,18 @@
 static BSEMAPHORE_DECL(block_passed, TRUE);				//permet de signaler quand le bloc est d�pass�
 static BSEMAPHORE_DECL(position_reached, TRUE);			//signale quand le robot est a la bonne distance du prochain bloc
 
-static THD_WORKING_AREA(waMoveControl, 256);
+static THD_WORKING_AREA(waMoveControl, 1024);
 static THD_FUNCTION(MoveControl, arg)
 {
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 	systime_t time;
-	test_capteur();
+	while(1)
+		{
+		test_capteur();
+		chThdSleepMilliseconds(100);
+		}
+
 }
 
 void move_control_start(void)
