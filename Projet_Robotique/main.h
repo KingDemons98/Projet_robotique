@@ -17,6 +17,7 @@ extern "C" {
 #define MAX_LINE_WIDTH			150
 #define ROTATION_THRESHOLD		12
 #define ROTATION_COEFF			2
+#define COEFF_VITESSE			0.5f
 #define PXTOCM					640.0f //experimental value
 #define GOAL_DISTANCE 			5.0f
 #define MAX_DISTANCE 			20.0f
@@ -26,7 +27,7 @@ extern "C" {
 #define MAX_SUM_ERROR			MOTOR_SPEED_LIMIT/KI
 #define RIGHT					1
 #define LEFT					2
-
+#define POSITION_REACHED		1
 
 /** Robot wide IPC bus. */
 extern messagebus_t bus;

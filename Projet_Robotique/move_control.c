@@ -17,13 +17,13 @@
 #include <camera/po8030.h>
 
 
-// module de gestion du d�placement avec la cam�ra et les capteurs de proximit�
+// module de gestion du deplacement avec la camera et les capteurs de proximite
 
-static BSEMAPHORE_DECL(block_passed, TRUE);				//permet de signaler quand le bloc est d�pass�
+static BSEMAPHORE_DECL(block_passed, TRUE);				//permet de signaler quand le bloc est depasse
 static BSEMAPHORE_DECL(position_reached, TRUE);			//signale quand le robot est a la bonne distance du prochain bloc
 
-int16_t speed =0;
-int16_t speed_correction = 0;
+//int16_t speed =0;
+//int16_t speed_correction = 0;
 
 static THD_WORKING_AREA(waMoveControl, 1024);
 static THD_FUNCTION(MoveControl, arg)
@@ -34,15 +34,23 @@ static THD_FUNCTION(MoveControl, arg)
 	while(1)
 	{
 		time = chVTGetSystemTime();
-		speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
+//		speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
+//
+//		speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
+//		if(abs(speed_correction)< ROTATION_THRESHOLD)
+//		{
+//			speed_correction = 0;
+//		}
+//		right_motor_set_speed(COEFF_VITESSE*(speed - ROTATION_COEFF * speed_correction));
+//		left_motor_set_speed(COEFF_VITESSE*(speed + ROTATION_COEFF * speed_correction));
 
-		speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
-		if(abs(speed_correction)< ROTATION_THRESHOLD)
+		if (get_distance_cm() == GOAL_DISTANCE)
 		{
-			speed_correction = 0;
+			right_motor_set_speed(0);
+			left_motor_set_speed(0);
+			position = POSITION_REACHED;
 		}
-		right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
-		left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
+
 
 		chThdSleepUntilWindowed(time, time + MS2ST(1));
 
