@@ -31,9 +31,20 @@ static THD_FUNCTION(MoveControl, arg)
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 	systime_t time;
+	left_motor_set_pos(0);
+	right_motor_set_pos(0);
 	while(1)
 	{
 		time = chVTGetSystemTime();
+		right_motor_set_speed(400);
+		left_motor_set_speed(-400);
+		if(right_motor_get_pos() > (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER))
+		{
+			right_motor_set_speed(0);
+			left_motor_set_speed(0);
+			break;
+		}
+
 //		speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
 //
 //		speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
@@ -43,13 +54,21 @@ static THD_FUNCTION(MoveControl, arg)
 //		}
 //		right_motor_set_speed(COEFF_VITESSE*(speed - ROTATION_COEFF * speed_correction));
 //		left_motor_set_speed(COEFF_VITESSE*(speed + ROTATION_COEFF * speed_correction));
-
-		if (get_distance_cm() == GOAL_DISTANCE)
-		{
-			right_motor_set_speed(0);
-			left_motor_set_speed(0);
-			position = POSITION_REACHED;
-		}
+//
+//		chprintf((BaseSequentialStream *)&SD3, "distance= %d \n", get_distance_cm());
+//
+//		if (get_distance_cm() == GOAL_DISTANCE)
+//		{
+//			right_motor_set_speed(0);
+//			left_motor_set_speed(0);
+//			if(get_block() == LEFT)
+//			{
+//				right_motor_set_speed();
+//				left_motor_set_speed();
+//			}
+////			position = POSITION_REACHED;
+//			break;
+//		}
 
 
 		chThdSleepUntilWindowed(time, time + MS2ST(1));
@@ -67,10 +86,10 @@ void move_control_start(void)
 void test_capteur(void)
 {
 	int left;
-	int right;
+//	int right;
 	calibrate_ir();
 	left = get_prox(6);
-	right= get_prox(3);
+//	right= get_prox(3);
 	if(left!=0)
 	{
 		palClearPad(GPIOD, GPIOD_LED7);

@@ -13,12 +13,12 @@ extern "C" {
 //constants for the differents parts of the project
 #define IMAGE_BUFFER_SIZE		640
 #define WIDTH_SLOPE				5
-#define MIN_LINE_WIDTH			25
+#define MIN_LINE_WIDTH			28
 #define MAX_LINE_WIDTH			150
 #define ROTATION_THRESHOLD		12
 #define ROTATION_COEFF			2
 #define COEFF_VITESSE			0.5f
-#define PXTOCM					640.0f //experimental value
+#define PXTOCM					280.0f //experimental value
 #define GOAL_DISTANCE 			5.0f
 #define MAX_DISTANCE 			20.0f
 #define ERROR_THRESHOLD			0.1f	//[cm] because of the noise of the camera
@@ -28,6 +28,11 @@ extern "C" {
 #define RIGHT					1
 #define LEFT					2
 #define POSITION_REACHED		1
+#define NSTEP_ONE_TURN      	1000
+#define WHEEL_DISTANCE      	5.35f
+#define PERIMETER_EPUCK     	(PI * WHEEL_DISTANCE)
+#define PI                  	3.1415926536f
+#define WHEEL_PERIMETER     	13
 
 /** Robot wide IPC bus. */
 extern messagebus_t bus;

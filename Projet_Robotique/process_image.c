@@ -30,7 +30,8 @@ static THD_FUNCTION(CaptureImage, arg) {
     (void)arg;
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 10 + 11 (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, 10, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_advanced_config(FORMAT_RGB565, 0, 200, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_set_awb(0);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
@@ -131,7 +132,7 @@ uint block_detection(uint8_t *buffer)
 	do
 	{
 		wrong_line = 0;
-		palSetPad(GPIOD, GPIOD_LED5); //test boucle dowhile
+//		palSetPad(GPIOD, GPIOD_LED5); //test boucle dowhile
 		while(stop == 0 && i< (IMAGE_BUFFER_SIZE))
 		{
 //			palSetPad(GPIOD, GPIOD_LED1); //test boucle1
@@ -155,6 +156,7 @@ uint block_detection(uint8_t *buffer)
 				{
 					end = i;
 //					stop = 1;
+					line_position = (begin + end)/2;
 					block = RIGHT;
 				}
 				i++;
@@ -165,6 +167,7 @@ uint block_detection(uint8_t *buffer)
 						begin = end;
 						end = i;
 						stop =1;
+						line_position = (begin + end)/2;
 						block = LEFT;
 					}
 				}
@@ -178,12 +181,14 @@ uint block_detection(uint8_t *buffer)
 		{
 			line_not_found = 1;
 		}
-		if(!line_not_found &&  (((end-begin) < MIN_LINE_WIDTH) || ((end-begin) > MAX_LINE_WIDTH)))
+		if(!line_not_found &&  (((end-begin) < MIN_LINE_WIDTH) || ((end-begin) > MAX_LINE_WIDTH) ||
+				(line_position < IMAGE_BUFFER_SIZE/4) || (line_position > (3*IMAGE_BUFFER_SIZE/4))))
 		{
 			i = end;
 			begin = 0;
 			end = 0;
 			stop = 0;
+			line_position = IMAGE_BUFFER_SIZE/2;
 			wrong_line = 1;
 		}
 	} while(wrong_line);
@@ -197,7 +202,7 @@ uint block_detection(uint8_t *buffer)
 	} else
 	{
 		last_width = width =(end - begin);
-		line_position = (begin + end)/2;
+//		line_position = (begin + end)/2;
 	}
 	return block;
 }

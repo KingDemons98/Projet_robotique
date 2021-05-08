@@ -61,6 +61,7 @@ int16_t pi_regulator(float distance, float goal)
 	{
 		somme_erreur = -MAX_SUM_ERROR;
 	}
-	speed = KP *erreur + KI*somme_erreur;
+	speed = KP *erreur;
+//			+ KI*somme_erreur;
 	return (int16_t)speed;
 }

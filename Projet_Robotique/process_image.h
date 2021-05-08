@@ -7,4 +7,5 @@ uint16_t get_distance_cm(void);
 uint block_detection(uint8_t *buffer);
 uint16_t get_line_position(void);
 
+
 #endif /* PROCESS_IMAGE_H */

@@ -13,6 +13,7 @@
 #include <camera/po8030.h>
 #include <chprintf.h>
 #include "sensors/proximity.h"
+#include <leds.h>
 
 #include <pi_regulator.h>
 #include <process_image.h>
@@ -60,6 +61,7 @@ int main(void)
 	motors_init();
 
 	proximity_start();
+//	set_front_led(1);
 
 	//stars the threads for the pi regulator and the processing of the image
 //	pi_regulator_start();
