@@ -22,57 +22,46 @@
 static BSEMAPHORE_DECL(block_passed, TRUE);				//permet de signaler quand le bloc est depasse
 static BSEMAPHORE_DECL(position_reached, TRUE);			//signale quand le robot est a la bonne distance du prochain bloc
 
-int16_t speed =0;
-int16_t speed_correction = 0;
-
+//static bool position_reached = 0;
 static THD_WORKING_AREA(waMoveControl, 1024);
 static THD_FUNCTION(MoveControl, arg)
 {
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 	systime_t time;
+	int16_t speed =0;
+	int16_t speed_correction = 0;
+	volatile int32_t count_left = 0;
+	volatile int32_t count_right = 0;
 	while(1)
 	{
 		time = chVTGetSystemTime();
-//		right_motor_set_speed(400);
-//		left_motor_set_speed(-400);
-//		if(right_motor_get_pos() >= (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER))
-//		{
-//			right_motor_set_speed(0);
-//			left_motor_set_speed(0);
-//			break;
-//		}
-
-		speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
-
-		speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
-		if(abs(speed_correction)< ROTATION_THRESHOLD)
-		{
-			speed_correction = 0;
-		}
-		right_motor_set_speed(COEFF_VITESSE*(speed - ROTATION_COEFF * speed_correction));
-		left_motor_set_speed(COEFF_VITESSE*(speed + ROTATION_COEFF * speed_correction));
-
-//		chprintf((BaseSequentialStream *)&SDU1, "distance= %d \n", get_distance_cm());
-
+		move_to_block(speed, speed_correction);
+//
+////		chprintf((BaseSequentialStream *)&SDU1, "distance= %d \n", get_distance_cm());
+//
 		if (get_distance_cm() == GOAL_DISTANCE)
 		{
 			right_motor_set_speed(0);
 			left_motor_set_speed(0);
+//			position_reached = POSITION_REACHED;
+//			if (position_reached == POSITION_REACHED)
 			if(get_block() == LEFT)
 			{
 				left_motor_set_pos(0);
 				right_motor_set_pos(0);
+				right_motor_set_speed(400);
+				left_motor_set_speed(-400);
 				do
 				{
-					right_motor_set_speed(400);
-					left_motor_set_speed(-400);
-//					chprintf((BaseSequentialStream *)&SDU1, "compteur= %d \n", left_motor_get_pos());
-//					chprintf((BaseSequentialStream *)&SDU1, "valeur= %d \n", NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER);
-				} while((abs(left_motor_get_pos()) || abs(right_motor_get_pos())) <= (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER));
-			break;
+
+					count_right = right_motor_get_pos();
+					count_left = left_motor_get_pos();
+				} while(abs(count_right) < (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER));
+				right_motor_set_speed(0);
+				left_motor_set_speed(0);
+				break;
 			}
-//			position = POSITION_REACHED;
 			break;
 		}
 
@@ -107,3 +96,15 @@ void test_capteur(void)
 
 }
 
+void move_to_block(int16_t speed, int16_t speed_correction)
+{
+	speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
+
+	speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
+	if(abs(speed_correction)< ROTATION_THRESHOLD)
+	{
+		speed_correction = 0;
+	}
+	right_motor_set_speed(COEFF_VITESSE*(speed - ROTATION_COEFF * speed_correction));
+	left_motor_set_speed(COEFF_VITESSE*(speed + ROTATION_COEFF * speed_correction));
+}
