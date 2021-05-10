@@ -31,8 +31,7 @@ static THD_FUNCTION(MoveControl, arg)
 	systime_t time;
 	int16_t speed =0;
 	int16_t speed_correction = 0;
-	volatile int32_t count_left = 0;
-	volatile int32_t count_right = 0;
+	int32_t count_right = 0;
 	while(1)
 	{
 		time = chVTGetSystemTime();
@@ -46,22 +45,7 @@ static THD_FUNCTION(MoveControl, arg)
 			left_motor_set_speed(0);
 //			position_reached = POSITION_REACHED;
 //			if (position_reached == POSITION_REACHED)
-			if(get_block() == LEFT)
-			{
-				left_motor_set_pos(0);
-				right_motor_set_pos(0);
-				right_motor_set_speed(400);
-				left_motor_set_speed(-400);
-				do
-				{
-
-					count_right = right_motor_get_pos();
-					count_left = left_motor_get_pos();
-				} while(abs(count_right) < (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER));
-				right_motor_set_speed(0);
-				left_motor_set_speed(0);
-				break;
-			}
+			turn(get_block(), count_right);
 			break;
 		}
 
@@ -107,4 +91,39 @@ void move_to_block(int16_t speed, int16_t speed_correction)
 	}
 	right_motor_set_speed(COEFF_VITESSE*(speed - ROTATION_COEFF * speed_correction));
 	left_motor_set_speed(COEFF_VITESSE*(speed + ROTATION_COEFF * speed_correction));
+}
+
+void turn(uint block, int32_t count_right)
+{
+	switch(block)
+	{
+	case RIGHT:
+		left_motor_set_pos(0);
+		right_motor_set_pos(0);
+		right_motor_set_speed(400);
+		left_motor_set_speed(-400);
+		do
+		{
+			count_right = right_motor_get_pos();
+		} while(abs(count_right) < (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER));
+		right_motor_set_speed(0);
+		left_motor_set_speed(0);
+		break;
+	case LEFT:
+		left_motor_set_pos(0);
+		right_motor_set_pos(0);
+		right_motor_set_speed(-400);
+		left_motor_set_speed(400);
+		do
+		{
+			count_right = right_motor_get_pos();
+		} while(abs(count_right) < (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER));
+		right_motor_set_speed(0);
+		left_motor_set_speed(0);
+		break;
+	case 0:
+		right_motor_set_speed(0);
+		left_motor_set_speed(0);
+		break;
+	}
 }
