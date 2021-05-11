@@ -24,13 +24,13 @@ static float distance_cm = 0;
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 
 static THD_WORKING_AREA(waCaptureImage, 256);
-static THD_FUNCTION(CaptureImage, arg) {
+static THD_FUNCTION(CaptureImage, arg) {										//cette partie de code vient des tp
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 10 + 11 (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, 200, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_advanced_config(FORMAT_RGB565, 0, 100, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	po8030_set_awb(0);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
@@ -50,7 +50,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 
 
 static THD_WORKING_AREA(waProcessImage, 1024);
-static THD_FUNCTION(ProcessImage, arg) {
+static THD_FUNCTION(ProcessImage, arg) {				//cette partie de code vient des tp, mais legerement modifiee par nous
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
@@ -112,12 +112,12 @@ static THD_FUNCTION(ProcessImage, arg) {
 uint get_block(void){
 	return Block;
 }
-uint16_t get_line_position(void)
+uint16_t get_line_position(void)						//cette partie de code vient des tp
 {
 	return line_position;
 }
 
-uint16_t get_distance_cm(void)
+uint16_t get_distance_cm(void)							//cette partie de code vient des tp
 {
 	return distance_cm;
 }
@@ -127,14 +127,13 @@ void process_image_start(void){
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
 
-uint block_detection(uint8_t *buffer)
+uint block_detection(uint8_t *buffer)									//fonction inspiree des tp mais refaite par nous
 {
 	uint16_t i = 0, begin = 0, end = 0;
 	uint8_t stop = 0, wrong_line = 0, line_not_found = 0;
 	uint32_t mean = 0;
 //	bool left = 0;
 	uint block = 0;
-	static uint16_t last_width = PXTOCM/GOAL_DISTANCE;
 //	palClearPad(GPIOD, GPIOD_LED1);
 //	palClearPad(GPIOD, GPIOD_LED3);
 //	palClearPad(GPIOD, GPIOD_LED5);
@@ -218,7 +217,7 @@ uint block_detection(uint8_t *buffer)
 		width = 10;
 	} else
 	{
-		last_width = width =(end - begin);
+		width =(end - begin);
 //		line_position = (begin + end)/2;
 	}
 	return block;

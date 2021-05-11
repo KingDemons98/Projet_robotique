@@ -7,5 +7,6 @@ void test_capteur(void);
 void move_to_block(int16_t speed, int16_t speed_correction);
 void turn(uint block);
 void move_cm(uint distance);
+void move_between_blocks(uint block, uint distance);
 
 #endif /* MOVE_CONTROL_H_ */

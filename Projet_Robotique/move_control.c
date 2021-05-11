@@ -34,26 +34,23 @@ static THD_FUNCTION(MoveControl, arg)
 	while(1)
 	{
 		time = chVTGetSystemTime();
-		move_to_block(speed, speed_correction);
-//
-////		chprintf((BaseSequentialStream *)&SDU1, "distance= %d \n", get_distance_cm());
-//
-		if (get_distance_cm() == GOAL_DISTANCE)
-		{
-			right_motor_set_speed(0);
-			left_motor_set_speed(0);
-//			position_reached = POSITION_REACHED;
-//			if (position_reached == POSITION_REACHED)
-			turn(get_block());
-			move_cm(5);
-			break;
-		}
+//		move_to_block(speed, speed_correction);
+////
+////
+//		if (get_distance_cm() == GOAL_DISTANCE)
+//		{
+//			right_motor_set_speed(0);
+//			left_motor_set_speed(0);
+////			position_reached = POSITION_REACHED;
+//			move_between_blocks(get_block(), 5);
+//			break;
+//		}
 
 
-		chThdSleepUntilWindowed(time, time + MS2ST(1));
+//		chThdSleepUntilWindowed(time, time + MS2ST(1));
 
 		test_capteur();
-//		chThdSleepMilliseconds(100);
+		chThdSleepMilliseconds(100);
 	}
 }
 
@@ -64,25 +61,26 @@ void move_control_start(void)
 
 void test_capteur(void)
 {
-	int left;
-//	int right;
+
 	calibrate_ir();
-	left = get_prox(6);
-//	right= get_prox(3);
-	if(left!=0)
-	{
-		palClearPad(GPIOD, GPIOD_LED7);
-	}else
-	{
-		palSetPad(GPIOD, GPIOD_LED7);
-	}
-//	chprintf((BaseSequentialStream *)&SDU1, "valeur capteur6= %d \n", left);
+	int front_left = get_prox(6);
+	int front_right= get_prox(1);
+	int left = get_prox(5);
+	int right = get_prox(2);
+//	if(left!=0)
+//	{
+//		palClearPad(GPIOD, GPIOD_LED7);
+//	}else
+//	{
+//		palSetPad(GPIOD, GPIOD_LED7);
+//	}
+	chprintf((BaseSequentialStream *)&SDU1, "front_left= %d front_right = %d left= %d right= %d \n", front_left, front_right, left, right);
 
 }
 
 void move_to_block(int16_t speed, int16_t speed_correction)
 {
-	speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
+	speed = pi_regulator_blocks(get_distance_cm(), GOAL_DISTANCE);
 
 	speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
 	if(abs(speed_correction)< ROTATION_THRESHOLD)
@@ -140,4 +138,21 @@ void move_cm(uint distance)
 	}while(abs(count) < (distance *NSTEP_ONE_TURN/WHEEL_PERIMETER));
 	right_motor_set_speed(0);
 	left_motor_set_speed(0);
+}
+
+void move_between_blocks(uint block, uint distance)
+{
+	turn(block);
+	move_cm(distance);
+	switch(block)
+	{
+	case RIGHT:
+		turn(LEFT);
+		break;
+	case LEFT:
+		turn(RIGHT);
+		break;
+	case 0:
+		break;
+	}
 }
