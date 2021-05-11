@@ -52,7 +52,7 @@ static THD_FUNCTION(MoveControl, arg)
 
 		chThdSleepUntilWindowed(time, time + MS2ST(1));
 
-//		test_capteur();
+		test_capteur();
 //		chThdSleepMilliseconds(100);
 	}
 }
