@@ -19,8 +19,8 @@
 
 // module de gestion du deplacement avec la camera et les capteurs de proximite
 
-static BSEMAPHORE_DECL(block_passed, TRUE);				//permet de signaler quand le bloc est depasse
-static BSEMAPHORE_DECL(position_reached, TRUE);			//signale quand le robot est a la bonne distance du prochain bloc
+//static BSEMAPHORE_DECL(block_passed, TRUE);				//permet de signaler quand le bloc est depasse
+//static BSEMAPHORE_DECL(position_reached, TRUE);			//signale quand le robot est a la bonne distance du prochain bloc
 
 //static bool position_reached = 0;
 static THD_WORKING_AREA(waMoveControl, 1024);
@@ -31,7 +31,6 @@ static THD_FUNCTION(MoveControl, arg)
 	systime_t time;
 	int16_t speed =0;
 	int16_t speed_correction = 0;
-	int32_t count_right = 0;
 	while(1)
 	{
 		time = chVTGetSystemTime();
@@ -45,7 +44,8 @@ static THD_FUNCTION(MoveControl, arg)
 			left_motor_set_speed(0);
 //			position_reached = POSITION_REACHED;
 //			if (position_reached == POSITION_REACHED)
-			turn(get_block(), count_right);
+			turn(get_block());
+			move_cm(5);
 			break;
 		}
 
@@ -93,31 +93,30 @@ void move_to_block(int16_t speed, int16_t speed_correction)
 	left_motor_set_speed(COEFF_VITESSE*(speed + ROTATION_COEFF * speed_correction));
 }
 
-void turn(uint block, int32_t count_right)
+void turn(uint block)
 {
+	int32_t count = 0;
+	left_motor_set_pos(0);
+	right_motor_set_pos(0);
 	switch(block)
 	{
 	case RIGHT:
-		left_motor_set_pos(0);
-		right_motor_set_pos(0);
 		right_motor_set_speed(400);
 		left_motor_set_speed(-400);
 		do
 		{
-			count_right = right_motor_get_pos();
-		} while(abs(count_right) < (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER));
+			count = right_motor_get_pos();
+		} while(abs(count) < (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER));
 		right_motor_set_speed(0);
 		left_motor_set_speed(0);
 		break;
 	case LEFT:
-		left_motor_set_pos(0);
-		right_motor_set_pos(0);
 		right_motor_set_speed(-400);
 		left_motor_set_speed(400);
 		do
 		{
-			count_right = right_motor_get_pos();
-		} while(abs(count_right) < (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER));
+			count = right_motor_get_pos();
+		} while(abs(count) < (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER));
 		right_motor_set_speed(0);
 		left_motor_set_speed(0);
 		break;
@@ -126,4 +125,19 @@ void turn(uint block, int32_t count_right)
 		left_motor_set_speed(0);
 		break;
 	}
+}
+
+void move_cm(uint distance)
+{
+	int32_t count = 0;
+	left_motor_set_pos(0);
+	right_motor_set_pos(0);
+	right_motor_set_speed(400);
+	left_motor_set_speed(400);
+	do
+	{
+		count = right_motor_get_pos();
+	}while(abs(count) < (distance *NSTEP_ONE_TURN/WHEEL_PERIMETER));
+	right_motor_set_speed(0);
+	left_motor_set_speed(0);
 }
