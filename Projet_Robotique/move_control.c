@@ -34,23 +34,23 @@ static THD_FUNCTION(MoveControl, arg)
 	while(1)
 	{
 		time = chVTGetSystemTime();
-//		move_to_block(speed, speed_correction);
-////
-////
-//		if (get_distance_cm() == GOAL_DISTANCE)
-//		{
-//			right_motor_set_speed(0);
-//			left_motor_set_speed(0);
-////			position_reached = POSITION_REACHED;
-//			move_between_blocks(get_block(), 5);
-//			break;
-//		}
+		move_to_block(speed, speed_correction);
+//
+//
+		if (get_distance_cm() == GOAL_DISTANCE)
+		{
+			right_motor_set_speed(0);
+			left_motor_set_speed(0);
+//			position_reached = POSITION_REACHED;
+			move_between_blocks(get_block(), 5);
+			break;
+		}
 
 
-//		chThdSleepUntilWindowed(time, time + MS2ST(1));
+		chThdSleepUntilWindowed(time, time + MS2ST(1));
 
-		test_capteur();
-		chThdSleepMilliseconds(100);
+//		test_capteur();
+//		chThdSleepMilliseconds(100);
 	}
 }
 
@@ -74,7 +74,7 @@ void test_capteur(void)
 //	{
 //		palSetPad(GPIOD, GPIOD_LED7);
 //	}
-	chprintf((BaseSequentialStream *)&SDU1, "front_left= %d front_right = %d left= %d right= %d \n", front_left, front_right, left, right);
+//	chprintf((BaseSequentialStream *)&SDU1, "front_left= %d front_right = %d left= %d right= %d \n", front_left, front_right, left, right);
 
 }
 
