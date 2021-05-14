@@ -34,8 +34,15 @@ int16_t pi_regulator_blocks(float distance, float goal)
 	return (int16_t)speed;
 }
 
-//int16_t pi_regulator_capteurs(int capteur_right, int capteur_left)
-//{
-//
-//	return speed;
-//}
+int16_t pi_regulator_capteurs(int capteur_right, int capteur_left)
+{
+	int16_t speed;
+	if (capteur_right < capteur_left)
+	{
+		speed = -50;
+	} else
+	{
+		speed = 50;
+	}
+	return speed;
+}

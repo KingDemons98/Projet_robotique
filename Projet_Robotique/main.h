@@ -13,12 +13,13 @@ extern "C" {
 //constants for the differents parts of the project
 #define IMAGE_BUFFER_SIZE		640
 #define WIDTH_SLOPE				5
-#define MIN_LINE_WIDTH			25
+#define MIN_LINE_WIDTH			35
 #define MAX_LINE_WIDTH			150
+#define WHITE_VALUE				175
 #define ROTATION_THRESHOLD		12
 #define ROTATION_COEFF			2
-#define COEFF_VITESSE			0.5f
-#define WHITE_VALUE				100
+#define COEFF_VITESSE			0.1f
+#define MOVE_SPEED				300
 #define PXTOCM					535.0f //experimental value
 #define GOAL_DISTANCE 			5.0f
 #define MAX_DISTANCE 			20.0f
@@ -29,6 +30,9 @@ extern "C" {
 #define RIGHT					1
 #define LEFT					2
 #define POSITION_REACHED		1
+#define POSITION_NOT_REACHED	0
+#define BLOCK_PASSED			1
+#define BLOCK_NOT_PASSED		0
 #define NSTEP_ONE_TURN      	1000
 #define WHEEL_DISTANCE      	5.35f
 #define PERIMETER_EPUCK     	(PI * WHEEL_DISTANCE)

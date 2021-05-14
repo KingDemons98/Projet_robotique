@@ -15,6 +15,7 @@
 #include <pi_regulator.h>
 #include <process_image.h>
 #include <camera/po8030.h>
+#include <leds.h>
 
 
 // module de gestion du deplacement avec la camera et les capteurs de proximite
@@ -22,35 +23,53 @@
 //static BSEMAPHORE_DECL(block_passed, TRUE);				//permet de signaler quand le bloc est depasse
 //static BSEMAPHORE_DECL(position_reached, TRUE);			//signale quand le robot est a la bonne distance du prochain bloc
 
-//static bool position_reached = 0;
+static bool position_reached = POSITION_NOT_REACHED;
+static bool block_passed = BLOCK_PASSED;
 static THD_WORKING_AREA(waMoveControl, 1024);
 static THD_FUNCTION(MoveControl, arg)
 {
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 	systime_t time;
-	int16_t speed =0;
-	int16_t speed_correction = 0;
+	clear_leds();
 	while(1)
 	{
 		time = chVTGetSystemTime();
-		move_to_block(speed, speed_correction);
-//
-//
-		if (get_distance_cm() == GOAL_DISTANCE)
+		while(!position_reached)
 		{
-			right_motor_set_speed(0);
-			left_motor_set_speed(0);
-//			position_reached = POSITION_REACHED;
-			move_between_blocks(get_block(), 5);
-			break;
+			set_led(LED3,0);
+			set_led(LED1,1);
+			move_to_block();
+			if (get_distance_cm() == GOAL_DISTANCE)
+			{
+				right_motor_set_speed(0);
+				left_motor_set_speed(0);
+				move_between_blocks(get_block(), 4.8);
+				block_passed = BLOCK_NOT_PASSED;
+				position_reached = POSITION_REACHED;
+				chThdSleepMilliseconds(1000);
+//				break;
+			}
+		}
+		while(!block_passed)
+		{
+			set_led(LED1,0);
+			set_led(LED3,1);
+			calibrate_ir();
+			right_motor_set_speed (MOVE_SPEED/2 + pi_regulator_capteurs(get_prox(2),get_prox(5)));
+			left_motor_set_speed (MOVE_SPEED/2 - pi_regulator_capteurs(get_prox(2),get_prox(5)));
+			if ((get_prox(2)<get_prox(3)) && (get_prox(5)<get_prox(4)) && (get_prox(4)> 400) &&(get_prox(3) > 400))
+			{
+				block_passed = BLOCK_PASSED;
+				position_reached = POSITION_NOT_REACHED;
+				right_motor_set_speed(0);
+				left_motor_set_speed(0);
+				chThdSleepMilliseconds(1000);
+//				break;
+			}
 		}
 
-
 		chThdSleepUntilWindowed(time, time + MS2ST(1));
-
-//		test_capteur();
-//		chThdSleepMilliseconds(100);
 	}
 }
 
@@ -63,10 +82,10 @@ void test_capteur(void)
 {
 
 	calibrate_ir();
-	int front_left = get_prox(6);
-	int front_right= get_prox(1);
-	int left = get_prox(5);
-	int right = get_prox(2);
+//	int front_left = get_prox(6);
+//	int front_right= get_prox(1);
+//	int left = get_prox(5);
+//	int right = get_prox(2);
 //	if(left!=0)
 //	{
 //		palClearPad(GPIOD, GPIOD_LED7);
@@ -78,8 +97,10 @@ void test_capteur(void)
 
 }
 
-void move_to_block(int16_t speed, int16_t speed_correction)
+void move_to_block(void)
 {
+	int16_t speed =0;
+	int16_t speed_correction = 0;
 	speed = pi_regulator_blocks(get_distance_cm(), GOAL_DISTANCE);
 
 	speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
@@ -87,8 +108,8 @@ void move_to_block(int16_t speed, int16_t speed_correction)
 	{
 		speed_correction = 0;
 	}
-	right_motor_set_speed(COEFF_VITESSE*(speed - ROTATION_COEFF * speed_correction));
-	left_motor_set_speed(COEFF_VITESSE*(speed + ROTATION_COEFF * speed_correction));
+	right_motor_set_speed(COEFF_VITESSE*speed - ROTATION_COEFF * speed_correction);
+	left_motor_set_speed(COEFF_VITESSE*speed + ROTATION_COEFF * speed_correction);
 }
 
 void turn(uint block)
@@ -99,8 +120,8 @@ void turn(uint block)
 	switch(block)
 	{
 	case RIGHT:
-		right_motor_set_speed(400);
-		left_motor_set_speed(-400);
+		right_motor_set_speed(MOVE_SPEED);
+		left_motor_set_speed(-MOVE_SPEED);
 		do
 		{
 			count = right_motor_get_pos();
@@ -109,8 +130,8 @@ void turn(uint block)
 		left_motor_set_speed(0);
 		break;
 	case LEFT:
-		right_motor_set_speed(-400);
-		left_motor_set_speed(400);
+		right_motor_set_speed(-MOVE_SPEED);
+		left_motor_set_speed(MOVE_SPEED);
 		do
 		{
 			count = right_motor_get_pos();
@@ -125,13 +146,13 @@ void turn(uint block)
 	}
 }
 
-void move_cm(uint distance)
+void move_cm(float distance)
 {
 	int32_t count = 0;
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
-	right_motor_set_speed(400);
-	left_motor_set_speed(400);
+	right_motor_set_speed(MOVE_SPEED);
+	left_motor_set_speed(MOVE_SPEED);
 	do
 	{
 		count = right_motor_get_pos();
@@ -140,7 +161,7 @@ void move_cm(uint distance)
 	left_motor_set_speed(0);
 }
 
-void move_between_blocks(uint block, uint distance)
+void move_between_blocks(uint block, float distance)
 {
 	turn(block);
 	move_cm(distance);

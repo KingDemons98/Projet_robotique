@@ -30,7 +30,7 @@ static THD_FUNCTION(CaptureImage, arg) {										//cette partie de code vient d
     (void)arg;
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 10 + 11 (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, 100, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_advanced_config(FORMAT_RGB565, 0, 300, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	po8030_set_awb(0);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
@@ -86,24 +86,24 @@ static THD_FUNCTION(ProcessImage, arg) {				//cette partie de code vient des tp,
 		palSetPad(GPIOD, GPIOD_LED7);
 		distance_cm = PXTOCM/width;
 
-		switch(Block)
-		{
-			case RIGHT:
-			{
-				palClearPad(GPIOD, GPIOD_LED3);
-				break;
-			}
-			case LEFT:
-			{
-				palClearPad(GPIOD, GPIOD_LED7);
-				break;
-			}
-			case 0:
-			{
-				palClearPad(GPIOD, GPIOD_LED5);
-				break;
-			}
-		}
+//		switch(Block)
+//		{
+//			case RIGHT:
+//			{
+//				palClearPad(GPIOD, GPIOD_LED3);
+//				break;
+//			}
+//			case LEFT:
+//			{
+//				palClearPad(GPIOD, GPIOD_LED7);
+//				break;
+//			}
+//			case 0:
+//			{
+//				palClearPad(GPIOD, GPIOD_LED5);
+//				break;
+//			}
+//		}
 
 
     }
@@ -123,8 +123,8 @@ uint16_t get_distance_cm(void)							//cette partie de code vient des tp
 }
 
 void process_image_start(void){
-	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
-	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
+	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO+1, ProcessImage, NULL);
+	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO+1, CaptureImage, NULL);
 }
 
 uint block_detection(uint8_t *buffer)									//fonction inspiree des tp mais refaite par nous
@@ -132,7 +132,6 @@ uint block_detection(uint8_t *buffer)									//fonction inspiree des tp mais re
 	uint16_t i = 0, begin = 0, end = 0;
 	uint8_t stop = 0, wrong_line = 0, line_not_found = 0;
 	uint32_t mean = 0;
-//	bool left = 0;
 	uint block = 0;
 //	palClearPad(GPIOD, GPIOD_LED1);
 //	palClearPad(GPIOD, GPIOD_LED3);
@@ -151,16 +150,15 @@ uint block_detection(uint8_t *buffer)									//fonction inspiree des tp mais re
 		while(stop == 0 && i< (IMAGE_BUFFER_SIZE))
 		{
 //			palSetPad(GPIOD, GPIOD_LED1); //test boucle1
-			if(buffer[i] > WHITE_VALUE && buffer[i-WIDTH_SLOPE] < WHITE_VALUE)
+			if(buffer[i] > WHITE_VALUE && buffer[i-WIDTH_SLOPE] < WHITE_VALUE)			//Va détecter une montée, donc une valeur de blanc
 			{
 				begin = i;
 				stop = 1;
-//				left = 0;
 			}
 			i++;
 		}
 //		palClearPad(GPIOD, GPIOD_LED1); //fin test 1
-		if (i < (IMAGE_BUFFER_SIZE - WIDTH_SLOPE) && begin)
+		if (i < (IMAGE_BUFFER_SIZE - WIDTH_SLOPE) && begin)								//Cherche une descente s'il y a un début
 		{
 			stop = 0;
 
@@ -175,9 +173,9 @@ uint block_detection(uint8_t *buffer)									//fonction inspiree des tp mais re
 					block = RIGHT;
 				}
 				i++;
-				if(i<(IMAGE_BUFFER_SIZE - WIDTH_SLOPE) && end)
-				{
-					if(buffer[i] > WHITE_VALUE && buffer[i-WIDTH_SLOPE] < WHITE_VALUE)
+				if(i<(IMAGE_BUFFER_SIZE - WIDTH_SLOPE) && end)							//Cherche à savoir si c'est le bloc de droite ou de gauche
+				{																		//REgarde s'il existe une autre montée après la première descente
+					if(buffer[i] > WHITE_VALUE && buffer[i-WIDTH_SLOPE] < WHITE_VALUE && buffer[i+MIN_LINE_WIDTH]> WHITE_VALUE)
 					{
 						begin = end;
 						end = i;
@@ -196,10 +194,9 @@ uint block_detection(uint8_t *buffer)									//fonction inspiree des tp mais re
 		{
 			line_not_found = 1;
 		}
-		if(!line_not_found &&  (((end-begin) < MIN_LINE_WIDTH) || ((end-begin) > MAX_LINE_WIDTH) ||
-				(line_position < IMAGE_BUFFER_SIZE/4) || (line_position > (3*IMAGE_BUFFER_SIZE/4))))
-		{
-			i = end;
+		if(!line_not_found &&  (((end-begin) < MIN_LINE_WIDTH) || ((end-begin) > MAX_LINE_WIDTH)))			//Vérifie que la ligne trouvée
+		{																									//correspond bien à ce que nous
+			i = end;																						//cherchons
 			begin = 0;
 			end = 0;
 			stop = 0;
