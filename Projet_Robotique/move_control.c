@@ -34,31 +34,33 @@ static THD_FUNCTION(MoveControl, arg)
 	clear_leds();
 	while(1)
 	{
+		test_capteur();
+//		chThdSleepMilliseconds(1000);
 		time = chVTGetSystemTime();
-		while(!position_reached)
-		{
-			set_led(LED3,0);
-			set_led(LED1,1);
-			move_to_block();
-			if (get_distance_cm() == GOAL_DISTANCE)
-			{
-				right_motor_set_speed(0);
-				left_motor_set_speed(0);
-				move_between_blocks(get_block(), 4.8);
-				block_passed = BLOCK_NOT_PASSED;
-				position_reached = POSITION_REACHED;
-				chThdSleepMilliseconds(1000);
+//		while(!position_reached)
+//		{
+//			set_led(LED3,0);
+//			set_led(LED1,1);
+//			move_to_block();
+//			if (get_distance_cm() == GOAL_DISTANCE)
+//			{
+//				right_motor_set_speed(0);
+//				left_motor_set_speed(0);
+//				move_between_blocks(get_block(), 4.8);
+//				block_passed = BLOCK_NOT_PASSED;
+//				position_reached = POSITION_REACHED;
+////				chThdSleepMilliseconds(1000);
 //				break;
-			}
-		}
-		while(!block_passed)
-		{
-			set_led(LED1,0);
-			set_led(LED3,1);
+//			}
+////		}
+//		while(!block_passed)
+//		{
+//			set_led(LED1,0);
+//			set_led(LED3,1);
 			calibrate_ir();
-			right_motor_set_speed (MOVE_SPEED/2 + pi_regulator_capteurs(get_prox(2),get_prox(5)));
-			left_motor_set_speed (MOVE_SPEED/2 - pi_regulator_capteurs(get_prox(2),get_prox(5)));
-			if ((get_prox(2)<get_prox(3)) && (get_prox(5)<get_prox(4)) && (get_prox(4)> 400) &&(get_prox(3) > 400))
+			right_motor_set_speed (MOVE_SPEED/2 - pi_regulator_capteurs(get_prox(2),get_prox(5)));
+			left_motor_set_speed (MOVE_SPEED/2 + pi_regulator_capteurs(get_prox(2),get_prox(5)));
+			if ((get_prox(5)< 400) &&(get_prox(2) < 400))
 			{
 				block_passed = BLOCK_PASSED;
 				position_reached = POSITION_NOT_REACHED;
@@ -67,8 +69,8 @@ static THD_FUNCTION(MoveControl, arg)
 				chThdSleepMilliseconds(1000);
 //				break;
 			}
-		}
-
+//		}
+//
 		chThdSleepUntilWindowed(time, time + MS2ST(1));
 	}
 }
@@ -82,18 +84,18 @@ void test_capteur(void)
 {
 
 	calibrate_ir();
-//	int front_left = get_prox(6);
-//	int front_right= get_prox(1);
-//	int left = get_prox(5);
-//	int right = get_prox(2);
-//	if(left!=0)
-//	{
-//		palClearPad(GPIOD, GPIOD_LED7);
-//	}else
-//	{
-//		palSetPad(GPIOD, GPIOD_LED7);
-//	}
-//	chprintf((BaseSequentialStream *)&SDU1, "front_left= %d front_right = %d left= %d right= %d \n", front_left, front_right, left, right);
+	int back_left = get_prox(4);
+	int back_right= get_prox(3);
+	int left = get_prox(5);
+	int right = get_prox(2);
+	if(left!=0)
+	{
+		palClearPad(GPIOD, GPIOD_LED7);
+	}else
+	{
+		palSetPad(GPIOD, GPIOD_LED7);
+	}
+	chprintf((BaseSequentialStream *)&SDU1, "back_left= %d back_right = %d left= %d right= %d \n", back_left, back_right, left, right);
 
 }
 

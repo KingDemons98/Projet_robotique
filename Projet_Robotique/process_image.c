@@ -30,8 +30,9 @@ static THD_FUNCTION(CaptureImage, arg) {										//cette partie de code vient d
     (void)arg;
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 10 + 11 (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, 300, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-	po8030_set_awb(0);
+	po8030_advanced_config(FORMAT_RGB565, 0, 380, IMAGE_BUFFER_SIZE, 3, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_set_brightness(20);
+	po8030_set_contrast(120);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
@@ -73,10 +74,10 @@ static THD_FUNCTION(ProcessImage, arg) {				//cette partie de code vient des tp,
 		*/
 		for(uint16_t i=0; i< (2*IMAGE_BUFFER_SIZE); i +=2)
 		{
-			image[i/2] = (uint8_t)img_buff_ptr[i]&0x1F8;
+			image[i/2] = (uint8_t)img_buff_ptr[i]&0xF8;
 		}
 		if (send_to_computer) {
-			SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
+//			SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
 		}
 		send_to_computer = !send_to_computer;
 
@@ -86,24 +87,24 @@ static THD_FUNCTION(ProcessImage, arg) {				//cette partie de code vient des tp,
 		palSetPad(GPIOD, GPIOD_LED7);
 		distance_cm = PXTOCM/width;
 
-//		switch(Block)
-//		{
-//			case RIGHT:
-//			{
-//				palClearPad(GPIOD, GPIOD_LED3);
-//				break;
-//			}
-//			case LEFT:
-//			{
-//				palClearPad(GPIOD, GPIOD_LED7);
-//				break;
-//			}
-//			case 0:
-//			{
-//				palClearPad(GPIOD, GPIOD_LED5);
-//				break;
-//			}
-//		}
+		switch(Block)
+		{
+			case RIGHT:
+			{
+				palClearPad(GPIOD, GPIOD_LED3);
+				break;
+			}
+			case LEFT:
+			{
+				palClearPad(GPIOD, GPIOD_LED7);
+				break;
+			}
+			case 0:
+			{
+				palClearPad(GPIOD, GPIOD_LED5);
+				break;
+			}
+		}
 
 
     }
@@ -173,7 +174,7 @@ uint block_detection(uint8_t *buffer)									//fonction inspiree des tp mais re
 					block = RIGHT;
 				}
 				i++;
-				if(i<(IMAGE_BUFFER_SIZE - WIDTH_SLOPE) && end)							//Cherche à savoir si c'est le bloc de droite ou de gauche
+				if(i<(IMAGE_BUFFER_SIZE - WIDTH_SLOPE) && ((begin-end)<MIN_LINE_WIDTH))							//Cherche à savoir si c'est le bloc de droite ou de gauche
 				{																		//REgarde s'il existe une autre montée après la première descente
 					if(buffer[i] > WHITE_VALUE && buffer[i-WIDTH_SLOPE] < WHITE_VALUE && buffer[i+MIN_LINE_WIDTH]> WHITE_VALUE)
 					{
