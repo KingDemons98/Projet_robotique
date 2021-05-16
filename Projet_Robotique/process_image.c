@@ -54,7 +54,7 @@ static THD_FUNCTION(CaptureImage, arg)
 
 static THD_WORKING_AREA(waProcessImage, 1024);
 static THD_FUNCTION(ProcessImage, arg)
-{																//taken form the tp, but modified by us
+{																//Taken form the tp, but modified by us
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
@@ -88,7 +88,7 @@ static THD_FUNCTION(ProcessImage, arg)
 		palSetPad(GPIOD, GPIOD_LED7);
 		distance_cm = PXTOCM/width;
 
-		switch(Block)										//indicate which post the robot sees, was used a lot during testing
+		switch(Block)										//Indicate which post the robot sees, was used a lot during testing
 		{													//We keep it because we find it decorative
 			case RIGHT:
 			{

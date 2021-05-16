@@ -17,7 +17,6 @@
 #include "sensors/imu.h"
 
 
-#include <pi_regulator.h>
 #include <process_image.h>
 #include <move_control.h>
 

@@ -13,7 +13,6 @@
 #include <sensors/proximity.h>
 #include "sensors/imu.h"
 #include <motors.h>
-#include <pi_regulator.h>
 #include <process_image.h>
 #include <camera/po8030.h>
 #include <leds.h>
@@ -51,8 +50,8 @@ static THD_FUNCTION(MoveControl, arg)
 		while(!block_passed) 						//This loop will guide the robot between the to blocks to the exit of them,
 		{											//facing the next block, using the proximity sensors
 			calibrate_ir();
-			right_motor_set_speed (MOVE_SPEED/2 + pi_regulator_capteurs(get_prox(2),get_prox(5)));
-			left_motor_set_speed (MOVE_SPEED/2 - pi_regulator_capteurs(get_prox(2),get_prox(5)));
+			right_motor_set_speed (MOVE_SPEED/2 + regulator_capteurs(get_prox(2),get_prox(5)));
+			left_motor_set_speed (MOVE_SPEED/2 - regulator_capteurs(get_prox(2),get_prox(5)));
 			if ((get_prox(5)< 400) &&(get_prox(2) < 400))
 			{
 				block_passed = BLOCK_PASSED;
@@ -68,7 +67,7 @@ static THD_FUNCTION(MoveControl, arg)
 }
 
 static THD_WORKING_AREA(waImuEnding, 512);
-static THD_FUNCTION(ImuEnding, arg)					// This thread will end the programm once the robot is down the slope
+static THD_FUNCTION(ImuEnding, arg)					// This thread will end the program once the robot is down the slope
 {
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
@@ -183,4 +182,39 @@ void move_between_blocks(uint block, float distance)
 		break;
 	}
 	move_cm(DISTANCE_TO_BLOCK);
+}
+
+int16_t pi_regulator_blocks(float distance, float goal)
+{
+	float speed = 0;
+	static float somme_erreur = 0;
+	float erreur = distance - goal;
+	if(fabs(erreur)< ERROR_THRESHOLD)
+	{
+		return 0;
+	}
+	somme_erreur += erreur;
+	if (somme_erreur > MAX_SUM_ERROR)
+	{
+		somme_erreur = MAX_SUM_ERROR;
+	}
+	if (somme_erreur < -MAX_SUM_ERROR)
+	{
+		somme_erreur = -MAX_SUM_ERROR;
+	}
+	speed = KP *erreur;
+	return (int16_t)speed;
+}
+
+int16_t regulator_capteurs(int capteur_right, int capteur_left)
+{
+	int16_t speed;
+	if (capteur_right < capteur_left)
+	{
+		speed = -10;
+	} else
+	{
+		speed = 10;
+	}
+	return speed;
 }
