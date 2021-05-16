@@ -39,10 +39,10 @@ int16_t pi_regulator_capteurs(int capteur_right, int capteur_left)
 	int16_t speed;
 	if (capteur_right < capteur_left)
 	{
-		speed = -50;
+		speed = -10;
 	} else
 	{
-		speed = 50;
+		speed = 10;
 	}
 	return speed;
 }

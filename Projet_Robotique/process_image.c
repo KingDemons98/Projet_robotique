@@ -77,7 +77,7 @@ static THD_FUNCTION(ProcessImage, arg) {				//cette partie de code vient des tp,
 			image[i/2] = (uint8_t)img_buff_ptr[i]&0xF8;
 		}
 		if (send_to_computer) {
-//			SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
+			SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
 		}
 		send_to_computer = !send_to_computer;
 

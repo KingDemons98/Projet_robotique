@@ -15,7 +15,7 @@ extern "C" {
 #define WIDTH_SLOPE				5
 #define MIN_LINE_WIDTH			35
 #define MAX_LINE_WIDTH			150
-#define WHITE_VALUE				235
+#define WHITE_VALUE				225
 #define ROTATION_THRESHOLD		12
 #define ROTATION_COEFF			2
 #define COEFF_VITESSE			0.2f
