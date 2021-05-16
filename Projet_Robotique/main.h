@@ -15,17 +15,17 @@ extern "C" {
 #define WIDTH_SLOPE				5
 #define MIN_LINE_WIDTH			35
 #define MAX_LINE_WIDTH			150
-#define WHITE_VALUE				225
+#define WHITE_VALUE				225 			//value of the white strips on the post captured by the camera
 #define ROTATION_THRESHOLD		12
 #define ROTATION_COEFF			3
 #define COEFF_VITESSE			0.5f
-#define MOVE_SPEED				300
-#define PXTOCM					535.0f //experimental value
+#define MOVE_SPEED				300 			// movement speed to control many movements. [steps]
+#define PXTOCM					535.0f 			//experimental value
 #define GOAL_DISTANCE 			4.0f
 #define MAX_DISTANCE 			20.0f
-#define ERROR_THRESHOLD			0.1f	//[cm] because of the noise of the camera
+#define ERROR_THRESHOLD			0.1f			//[cm] because of the noise of the camera
 #define KP						200.0f
-#define KI 						3.5f	//must not be zero
+#define KI 						3.5f			//must not be zero
 #define MAX_SUM_ERROR			MOTOR_SPEED_LIMIT/KI
 #define RIGHT					1
 #define LEFT					2

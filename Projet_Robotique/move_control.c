@@ -21,8 +21,9 @@
 
 // module de gestion du deplacement avec la camera et les capteurs de proximite
 
-static bool position_reached = POSITION_REACHED;
-static bool block_passed = BLOCK_NOT_PASSED;
+static bool position_reached = POSITION_REACHED; 			//indicate when the position is reached to activate the proximity sensors
+static bool block_passed = BLOCK_NOT_PASSED;				//indicate when the blocks are passed, and the camera can be used again
+
 static THD_WORKING_AREA(waMoveControl, 1024);
 static THD_FUNCTION(MoveControl, arg)
 {
@@ -33,8 +34,8 @@ static THD_FUNCTION(MoveControl, arg)
 	while(1)
 	{
 		time = chVTGetSystemTime();
-		while(!position_reached)
-		{
+		while(!position_reached)						//This loop will make the robot travel to the center between two blocks
+		{												//It uses the camera for this
 			move_to_block();
 			if (get_distance_cm() == GOAL_DISTANCE)
 			{
@@ -47,8 +48,8 @@ static THD_FUNCTION(MoveControl, arg)
 				break;
 			}
 		}
-		while(!block_passed)
-		{
+		while(!block_passed) 						//This loop will guide the robot between the to blocks to the exit of them,
+		{											//facing the next block, using the proximity sensors
 			calibrate_ir();
 			right_motor_set_speed (MOVE_SPEED/2 + pi_regulator_capteurs(get_prox(2),get_prox(5)));
 			left_motor_set_speed (MOVE_SPEED/2 - pi_regulator_capteurs(get_prox(2),get_prox(5)));
@@ -67,7 +68,7 @@ static THD_FUNCTION(MoveControl, arg)
 }
 
 static THD_WORKING_AREA(waImuEnding, 512);
-static THD_FUNCTION(ImuEnding, arg)
+static THD_FUNCTION(ImuEnding, arg)					// This thread will end the programm once the robot is down the slope
 {
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;

@@ -64,10 +64,8 @@ int main(void)
 
 	proximity_start();
 	imu_start();
-//	set_front_led(1);
 
-	//stars the threads for the pi regulator and the processing of the image
-//	pi_regulator_start();
+	//stars the threads for the control of movement, the processing of the image and the ending
 	process_image_start();
 	move_control_start();
 	imu_ending_start();
@@ -75,8 +73,6 @@ int main(void)
     /* Infinite loop. */
     while (1) {
     	//waits 1 second
-//    	chprintf((BaseSequentialStream *)&SDU1, "Az= %d\n", get_acc_filtered(2, 15));
-//    	move_cm(5);
         chThdSleepMilliseconds(1000);
     }
 }

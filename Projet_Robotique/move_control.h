@@ -3,8 +3,8 @@
 #define MOVE_CONTROL_H_
 
 
-#define DISTANCE_BETWEEN_BLOCKS 		4.8f
-#define DISTANCE_TO_BLOCK				7
+#define DISTANCE_BETWEEN_BLOCKS 		4.8f		//This is the distance between the block in front of the robot and the center of the blocks
+#define DISTANCE_TO_BLOCK				7			//This is the distance thr robot have to travel after turning to be between the to blocks
 #define QUARTER_TURN					0.25f
 
 /**
