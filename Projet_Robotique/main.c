@@ -14,6 +14,8 @@
 #include <chprintf.h>
 #include "sensors/proximity.h"
 #include <leds.h>
+#include "sensors/imu.h"
+
 
 #include <pi_regulator.h>
 #include <process_image.h>
@@ -61,16 +63,20 @@ int main(void)
 	motors_init();
 
 	proximity_start();
+	imu_start();
 //	set_front_led(1);
 
 	//stars the threads for the pi regulator and the processing of the image
 //	pi_regulator_start();
 	process_image_start();
 	move_control_start();
+	imu_ending_start();
 
     /* Infinite loop. */
     while (1) {
     	//waits 1 second
+//    	chprintf((BaseSequentialStream *)&SDU1, "Az= %d\n", get_acc_filtered(2, 15));
+//    	move_cm(5);
         chThdSleepMilliseconds(1000);
     }
 }

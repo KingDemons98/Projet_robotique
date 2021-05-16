@@ -17,8 +17,8 @@ extern "C" {
 #define MAX_LINE_WIDTH			150
 #define WHITE_VALUE				225
 #define ROTATION_THRESHOLD		12
-#define ROTATION_COEFF			2
-#define COEFF_VITESSE			0.2f
+#define ROTATION_COEFF			3
+#define COEFF_VITESSE			0.5f
 #define MOVE_SPEED				300
 #define PXTOCM					535.0f //experimental value
 #define GOAL_DISTANCE 			4.0f

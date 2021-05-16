@@ -11,6 +11,7 @@
 #include <main.h>
 #include <move_control.h>
 #include <sensors/proximity.h>
+#include "sensors/imu.h"
 #include <motors.h>
 #include <pi_regulator.h>
 #include <process_image.h>
@@ -20,8 +21,8 @@
 
 // module de gestion du deplacement avec la camera et les capteurs de proximite
 
-static bool position_reached = POSITION_NOT_REACHED;
-static bool block_passed = BLOCK_PASSED;
+static bool position_reached = POSITION_REACHED;
+static bool block_passed = BLOCK_NOT_PASSED;
 static THD_WORKING_AREA(waMoveControl, 1024);
 static THD_FUNCTION(MoveControl, arg)
 {
@@ -31,29 +32,23 @@ static THD_FUNCTION(MoveControl, arg)
 	clear_leds();
 	while(1)
 	{
-//		test_capteur();
-//		chThdSleepMilliseconds(1000);
 		time = chVTGetSystemTime();
 		while(!position_reached)
 		{
-//			set_led(LED3,0);
-//			set_led(LED1,1);
 			move_to_block();
 			if (get_distance_cm() == GOAL_DISTANCE)
 			{
 				right_motor_set_speed(0);
 				left_motor_set_speed(0);
-				move_between_blocks(get_block(), 4.8);
+				move_between_blocks(get_block(), DISTANCE_BETWEEN_BLOCKS);
 				block_passed = BLOCK_NOT_PASSED;
 				position_reached = POSITION_REACHED;
-//				chThdSleepMilliseconds(1000);
-//				break;
+				chThdSleepMilliseconds(10);
+				break;
 			}
 		}
 		while(!block_passed)
 		{
-////			set_led(LED1,0);
-////			set_led(LED3,1);
 			calibrate_ir();
 			right_motor_set_speed (MOVE_SPEED/2 + pi_regulator_capteurs(get_prox(2),get_prox(5)));
 			left_motor_set_speed (MOVE_SPEED/2 - pi_regulator_capteurs(get_prox(2),get_prox(5)));
@@ -63,37 +58,48 @@ static THD_FUNCTION(MoveControl, arg)
 				position_reached = POSITION_NOT_REACHED;
 				right_motor_set_speed(0);
 				left_motor_set_speed(0);
-				chThdSleepMilliseconds(1000);
-//				break;
+				break;
 			}
 		}
-////
+
 		chThdSleepUntilWindowed(time, time + MS2ST(1));
 	}
+}
+
+static THD_WORKING_AREA(waImuEnding, 512);
+static THD_FUNCTION(ImuEnding, arg)
+{
+	chRegSetThreadName(__FUNCTION__);
+	(void)arg;
+	systime_t time;
+	while(1)
+	{
+		time = chVTGetSystemTime();
+		if(position_reached == POSITION_NOT_REACHED)
+		{
+			if(get_acc_filtered(2,50) < -16300)
+			{
+				set_led(LED1, 1);
+				right_motor_set_speed(0);
+				left_motor_set_speed(0);
+				position_reached = POSITION_REACHED;
+				block_passed = BLOCK_PASSED;
+				turn(RIGHT, 1);
+				turn(LEFT, 1);
+			}
+		}
+		chThdSleepUntilWindowed(time, time + MS2ST(100));
+	}
+}
+
+void imu_ending_start(void)
+{
+	chThdCreateStatic(waImuEnding, sizeof(waImuEnding), NORMALPRIO, ImuEnding, NULL);
 }
 
 void move_control_start(void)
 {
 	chThdCreateStatic(waMoveControl, sizeof(waMoveControl), NORMALPRIO, MoveControl, NULL);
-}
-
-void test_capteur(void)
-{
-
-	calibrate_ir();
-	int back_left = get_prox(4);
-	int back_right= get_prox(3);
-	int left = get_prox(5);
-	int right = get_prox(2);
-	if(left!=0)
-	{
-		palClearPad(GPIOD, GPIOD_LED7);
-	}else
-	{
-		palSetPad(GPIOD, GPIOD_LED7);
-	}
-	chprintf((BaseSequentialStream *)&SDU1, "back_left= %d back_right = %d left= %d right= %d \n", back_left, back_right, left, right);
-
 }
 
 void move_to_block(void)
@@ -111,7 +117,7 @@ void move_to_block(void)
 	left_motor_set_speed(COEFF_VITESSE*speed + ROTATION_COEFF * speed_correction);
 }
 
-void turn(uint block)
+void turn(uint block, float number_turns)
 {
 	int32_t count = 0;
 	left_motor_set_pos(0);
@@ -124,7 +130,7 @@ void turn(uint block)
 		do
 		{
 			count = right_motor_get_pos();
-		} while(abs(count) < (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER));
+		} while(abs(count) < (number_turns*NSTEP_ONE_TURN*PERIMETER_EPUCK/WHEEL_PERIMETER));
 		right_motor_set_speed(0);
 		left_motor_set_speed(0);
 		break;
@@ -134,7 +140,7 @@ void turn(uint block)
 		do
 		{
 			count = right_motor_get_pos();
-		} while(abs(count) < (NSTEP_ONE_TURN*PERIMETER_EPUCK/4/WHEEL_PERIMETER));
+		} while(abs(count) < (number_turns*NSTEP_ONE_TURN*PERIMETER_EPUCK/WHEEL_PERIMETER));
 		right_motor_set_speed(0);
 		left_motor_set_speed(0);
 		break;
@@ -162,18 +168,18 @@ void move_cm(float distance)
 
 void move_between_blocks(uint block, float distance)
 {
-	turn(block);
+	turn(block, QUARTER_TURN);
 	move_cm(distance);
 	switch(block)
 	{
 	case RIGHT:
-		turn(LEFT);
+		turn(LEFT, QUARTER_TURN);
 		break;
 	case LEFT:
-		turn(RIGHT);
+		turn(RIGHT, QUARTER_TURN);
 		break;
 	case 0:
 		break;
 	}
-	move_cm(6);
+	move_cm(DISTANCE_TO_BLOCK);
 }
